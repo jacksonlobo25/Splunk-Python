@@ -1,6 +1,7 @@
 from flask import Blueprint, g, escape, session, redirect, render_template, request, jsonify, Response, flash
 from app import DAO
 from Misc.functions import *
+from Common.splunk_logger import log_to_splunk
 
 from Controllers.UserManager import UserManager
 
@@ -11,12 +12,13 @@ user_manager = UserManager(DAO)
 @user_view.route('/', methods=['GET'])
 def home():
 	g.bg = 1
-
 	user_manager.user.set_session(session, g)
-	print(g.user)
-
+	log_to_splunk({
+		'action': 'home_access',
+		'user_id': g.user["id"] if g.get("user") else None,
+		'ip': request.remote_addr
+	})
 	return render_template('home.html', g=g)
-
 
 @user_view.route('/signin', methods=['GET', 'POST'])
 @user_manager.user.redirect_if_login
@@ -31,16 +33,20 @@ def signin():
 
 		d = user_manager.signin(email, hash(password))
 
+		log_to_splunk({
+			'action': 'user_signin_attempt',
+			'email': email,
+			'status': 'success' if d else 'failed',
+			'ip': request.remote_addr
+		})
+
 		if d and len(d)>0:
 			session['user'] = int(d['id'])
-
 			return redirect("/")
 
 		return render_template('signin.html', error="Email or password incorrect")
 
-
 	return render_template('signin.html')
-
 
 @user_view.route('/signup', methods=['GET', 'POST'])
 @user_manager.user.redirect_if_login
@@ -55,21 +61,30 @@ def signup():
 
 		new_user = user_manager.signup(name, email, hash(password))
 
+		log_to_splunk({
+			'action': 'user_signup',
+			'name': name,
+			'email': email,
+			'status': new_user,
+			'ip': request.remote_addr
+		})
+
 		if new_user == "already_exists":
 			return render_template('signup.html', error="User already exists with this email")
 
-
 		return render_template('signup.html', msg = "You've been registered!")
 
-
 	return render_template('signup.html')
-
 
 @user_view.route('/signout/', methods=['GET'])
 @user_manager.user.login_required
 def signout():
+	log_to_splunk({
+		'action': 'user_signout',
+		'user_id': user_manager.user.uid(),
+		'ip': request.remote_addr
+	})
 	user_manager.signout()
-
 	return redirect("/", code=302)
 
 @user_view.route('/user/', methods=['GET'])
@@ -79,6 +94,12 @@ def show_user(id=None):
 	
 	if id is None:
 		id = int(user_manager.user.uid())
+
+	log_to_splunk({
+		'action': 'user_profile_view',
+		'user_id': id,
+		'ip': request.remote_addr
+	})
 
 	d = user_manager.get(id)
 	mybooks = user_manager.getBooksList(id)
@@ -97,6 +118,12 @@ def update():
 	bio = str(_form["bio"])
 
 	user_manager.update(name, email, hash(password), bio, user_manager.user.uid())
+
+	log_to_splunk({
+		'action': 'user_profile_update',
+		'user_id': user_manager.user.uid(),
+		'ip': request.remote_addr
+	})
 
 	flash('Your info has been updated!')
 	return redirect("/user/")

@@ -6,7 +6,6 @@ app.secret_key = '#$ab9&^BB00_.'
 
 # Setting DAO Class
 from Models.DAO import DAO
-
 DAO = DAO(app)
 
 # Registering blueprints
@@ -23,3 +22,7 @@ app.jinja_env.globals.update(
 app.register_blueprint(user_view)
 app.register_blueprint(book_view)
 app.register_blueprint(admin_view)
+
+# Public access setup
+if __name__ == '__main__':
+    app.run(debug=True, host='0.0.0.0', port=5000)
