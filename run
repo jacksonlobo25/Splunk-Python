@@ -5,7 +5,7 @@ export FLASK_ENV=development
 
 service mysql start
 
-python3 -m flask run --host=0.0.0.0 --port=5000
+sudo python3 -m flask run --host=0.0.0.0 --port=5000 &
 
 sudo mysql -u root -p
 
