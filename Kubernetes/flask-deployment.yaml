@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: splunk-python-app
-        image: your-dockerhub-username/splunk-python-app:latest
+        image: jacksonlobo/splunk-python-app:latest
         ports:
         - containerPort: 5000
         env:
@@ -24,3 +24,13 @@ spec:
           value: "app.py"
         - name: FLASK_ENV
           value: "production"
+        - name: MYSQL_HOST
+          value: "mysql"
+        - name: MYSQL_PORT
+          value: "3306"
+        - name: MYSQL_USER
+          value: "root"
+        - name: MYSQL_PASSWORD
+          value: ""
+        - name: MYSQL_DB
+          value: "lms"
