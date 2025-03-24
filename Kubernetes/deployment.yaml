@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: splunk-python-app
+  labels:
+    app: splunk-python-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: splunk-python-app
+  template:
+    metadata:
+      labels:
+        app: splunk-python-app
+    spec:
+      containers:
+      - name: splunk-python-app
+        image: your-dockerhub-username/splunk-python-app:latest
+        ports:
+        - containerPort: 5000
+        env:
+        - name: FLASK_APP
+          value: "app.py"
+        - name: FLASK_ENV
+          value: "production"
