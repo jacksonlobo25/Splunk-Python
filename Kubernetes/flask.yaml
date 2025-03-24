@@ -34,3 +34,19 @@ spec:
           value: ""
         - name: MYSQL_DB
           value: "lms"
+
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: splunk-python-app-service
+spec:
+  selector:
+    app: splunk-python-app
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 5000
+  type: LoadBalancer
