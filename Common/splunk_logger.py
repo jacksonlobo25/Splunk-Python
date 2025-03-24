@@ -3,7 +3,7 @@ import requests
 import json
 import time
 
-SPLUNK_HEC_URL = 'http://335.226.42.206:8088/services/collector'
+SPLUNK_HEC_URL = 'http://35.226.42.206:8088/services/collector'
 SPLUNK_TOKEN = '16e22809-f1a7-4972-b91d-b724a7cfb02b'
 
 def log_to_splunk(event, sourcetype='web-app', index='main', host='flask-app'):
