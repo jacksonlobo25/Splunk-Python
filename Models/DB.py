@@ -1,21 +1,17 @@
+import os
 from flaskext.mysql import MySQL
 from pymysql.cursors import DictCursor
 
-
 class DB(object):
-	"""Initialize mysql database """
-	host = "localhost"
-	user = "root"
-	password = ""
-	db = "lms"
-	table = ""
+	"""Initialize MySQL database using environment variables"""
 
 	def __init__(self, app):
-		app.config["MYSQL_DATABASE_HOST"] = self.host;
-		app.config["MYSQL_DATABASE_USER"] = self.user;
-		app.config["MYSQL_DATABASE_PASSWORD"] = self.password;
-		app.config["MYSQL_DATABASE_DB"] = self.db;
+		app.config["MYSQL_DATABASE_HOST"] = os.environ.get("MYSQL_HOST", "localhost")
+		app.config["MYSQL_DATABASE_USER"] = os.environ.get("MYSQL_USER", "root")
+		app.config["MYSQL_DATABASE_PASSWORD"] = os.environ.get("MYSQL_PASSWORD", "")
+		app.config["MYSQL_DATABASE_DB"] = os.environ.get("MYSQL_DB", "lms")
 
+		self.table = ""
 		self.mysql = MySQL(app, cursorclass=DictCursor)
 
 	def cur(self):
@@ -24,11 +20,10 @@ class DB(object):
 	def query(self, q):
 		h = self.cur()
 	
-		if (len(self.table)>0):
+		if len(self.table) > 0:
 			q = q.replace("@table", self.table)
 
 		h.execute(q)
-
 		return h
 
 	def commit(self):
