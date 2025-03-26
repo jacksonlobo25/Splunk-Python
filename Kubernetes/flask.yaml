@@ -38,6 +38,10 @@ spec:
           value: "lms"
         - name: DT_TAGS
           value: "app=splunk-python-app,team=devops,env=prod"
+        - name: LD_PRELOAD
+          value: /opt/dynatrace/oneagent/agent/lib64/liboneagentproc.so
+        - name: DT_DEPLOYMENT_METADATA
+          value: flask-app
 
 
 ---
