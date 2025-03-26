@@ -5,6 +5,7 @@ metadata:
 spec:
   accessModes:
     - ReadWriteOnce
+  storageClassName: standard  # <-- dynamic provisioning using default storage class
   resources:
     requests:
       storage: 1Gi

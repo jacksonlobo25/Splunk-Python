@@ -16,8 +16,8 @@ EXIT;
 CREATE DATABASE lms
 USE lms
 
-
-
+-----------------
+minikube start --driver=docker
 -------------------
 
 docker build -t splunk-python-app:latest .
@@ -27,6 +27,8 @@ docker run -p 5000:5000 splunk-python-app:latest
 
 kubectl apply -f mysql.yaml
 kubectl apply -f flask.yaml
+
+kubectl port-forward svc/flask-service -n demo-app 8080:80
 
 
 
