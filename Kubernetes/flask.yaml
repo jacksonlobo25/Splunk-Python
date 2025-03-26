@@ -24,6 +24,8 @@ spec:
           value: "app.py"
         - name: FLASK_ENV
           value: "production"
+        - name: MYSQL_ALLOW_EMPTY_PASSWORD
+          value: "yes"
         - name: MYSQL_HOST
           value: "mysql"
         - name: MYSQL_PORT
