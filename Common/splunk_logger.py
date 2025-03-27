@@ -5,7 +5,7 @@ import time
 import logging
 
 # Splunk Config
-SPLUNK_HEC_URL = 'http://35.226.42.206:8088/services/collector'
+SPLUNK_HEC_URL = 'http://34.41.226.221:8088/services/collector'
 SPLUNK_TOKEN = '16e22809-f1a7-4972-b91d-b724a7cfb02b'
 
 # Setup stdout logger (Dynatrace reads this)
