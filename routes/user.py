@@ -23,7 +23,7 @@ def home():
 		user_agent=request.headers.get("User-Agent"),
 		extra_data={
 			'action': 'home_access',
-			'user_id': g.user["id"] if g.get("user") else None
+			'user_id': g.user if isinstance(g.get("user"), int) else (g.user.get("id") if g.get("user") else None)
 		}
 	)
 
