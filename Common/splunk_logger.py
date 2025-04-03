@@ -32,13 +32,22 @@ def log_to_splunk(event, sourcetype='web-app', index='main', host='flask-app'):
     }
 
     try:
-        # ✅ Log to Splunk
-        response = requests.post(SPLUNK_HEC_URL, headers=headers, data=json.dumps(payload), verify=False)
+        response = requests.post(
+            SPLUNK_HEC_URL,
+            headers=headers,
+            data=json.dumps(payload),  # only payload should be dumped
+            verify=False
+        )
+
         if response.status_code != 200:
             stdout_logger.error(f"Splunk log failed: {response.status_code} {response.text}")
 
-        # ✅ Also log to stdout (for Dynatrace)
-        stdout_logger.info(json.dumps(event))
+        # Only stringify if needed
+        if isinstance(event, dict):
+            stdout_logger.info(json.dumps(event))
+        else:
+            stdout_logger.info(event)
 
     except Exception as e:
         stdout_logger.error(f"Splunk logging error: {e}")
+
