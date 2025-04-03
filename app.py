@@ -3,41 +3,41 @@ from Misc.functions import *
 import logging
 
 # ⬇️ Import your custom Splunk logger
-from Common.splunk_logger import log_to_splunk, stdout_logger
+# from Common.splunk_logger import log_to_splunk, stdout_logger
 
-# ⬇️ Create custom handler that uses log_to_splunk()
-class SplunkLogHandler(logging.Handler):
-    def emit(self, record):
-        try:
-            log_entry = self.format(record)
-            log_to_splunk(log_entry)
-        except Exception as e:
-            stdout_logger.error(f"SplunkLogHandler error: {e}")
+# # ⬇️ Create custom handler that uses log_to_splunk()
+# class SplunkLogHandler(logging.Handler):
+#     def emit(self, record):
+#         try:
+#             log_entry = self.format(record)
+#             log_to_splunk(log_entry)
+#         except Exception as e:
+#             stdout_logger.error(f"SplunkLogHandler error: {e}")
 
 # 🔧 Initialize Flask app
 app = Flask(__name__)
 app.secret_key = '#$ab9&^BB00_.'
 
-# 🔧 Logging setup
-app.logger.setLevel(logging.INFO)
-splunk_handler = SplunkLogHandler()
-splunk_handler.setLevel(logging.INFO)
-formatter = logging.Formatter('[%(asctime)s] %(levelname)s in %(module)s: %(message)s')
-splunk_handler.setFormatter(formatter)
+# # 🔧 Logging setup
+# app.logger.setLevel(logging.INFO)
+# splunk_handler = SplunkLogHandler()
+# splunk_handler.setLevel(logging.INFO)
+# formatter = logging.Formatter('[%(asctime)s] %(levelname)s in %(module)s: %(message)s')
+# splunk_handler.setFormatter(formatter)
 
-# ➕ Attach handler to app and Werkzeug loggers
-app.logger.addHandler(splunk_handler)
-logging.getLogger().addHandler(splunk_handler)
-logging.getLogger('werkzeug').addHandler(splunk_handler)
+# # ➕ Attach handler to app and Werkzeug loggers
+# app.logger.addHandler(splunk_handler)
+# logging.getLogger().addHandler(splunk_handler)
+# logging.getLogger('werkzeug').addHandler(splunk_handler)
 
-# 🔁 Optional: forward Flask logs to root logger too
-app.logger.propagate = True
+# # 🔁 Optional: forward Flask logs to root logger too
+# app.logger.propagate = True
 
-# 🔥 Automatically log uncaught exceptions
-def log_exception(sender, exception, **extra):
-    app.logger.exception("Uncaught Exception: %s", exception)
+# # 🔥 Automatically log uncaught exceptions
+# def log_exception(sender, exception, **extra):
+#     app.logger.exception("Uncaught Exception: %s", exception)
 
-got_request_exception.connect(log_exception, app)
+# got_request_exception.connect(log_exception, app)
 
 # ➕ Setting DAO Class
 from Models.DAO import DAO
