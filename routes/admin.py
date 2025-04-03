@@ -17,32 +17,50 @@ admin_manager = AdminManager(DAO)
 @admin_manager.admin.login_required
 def home():
 	admin_manager.admin.set_session(session, g)
-	log_to_splunk({'action': 'admin_home_access', 'admin_id': admin_manager.admin.uid(), 'ip': request.remote_addr})
+	log_to_splunk(
+		message="Admin accessed home",
+		status_code=200,
+		ip_address=request.remote_addr,
+		method=request.method,
+		endpoint=request.path,
+		user_agent=request.headers.get("User-Agent"),
+		extra_data={
+			'action': 'admin_home_access',
+			'admin_id': admin_manager.admin.uid()
+		}
+	)
 	return render_template('admin/home.html', g=g)
 
 @admin_view.route('/signin/', methods=['GET', 'POST'])
 @admin_manager.admin.redirect_if_login
 def signin():
 	g.bg = 1
-	
+
 	if request.method == 'POST':
 		_form = request.form
 		email = str(_form["email"])
 		password = str(_form["password"])
 
-		if len(email)<1 or len(password)<1:
+		if len(email) < 1 or len(password) < 1:
 			return render_template('admin/signin.html', error="Email and password are required")
 
 		d = admin_manager.signin(email, hash(password))
 
-		log_to_splunk({
-			'action': 'admin_signin_attempt',
-			'email': email,
-			'status': 'success' if d else 'failed',
-			'ip': request.remote_addr
-		})
+		log_to_splunk(
+			message="Admin sign-in attempt",
+			status_code=200 if d else 401,
+			ip_address=request.remote_addr,
+			method=request.method,
+			endpoint=request.path,
+			user_agent=request.headers.get("User-Agent"),
+			extra_data={
+				'action': 'admin_signin_attempt',
+				'email': email,
+				'status': 'success' if d else 'failed'
+			}
+		)
 
-		if d and len(d)>0:
+		if d and len(d) > 0:
 			session['admin'] = int(d["id"])
 			return redirect("/admin")
 
@@ -53,7 +71,18 @@ def signin():
 @admin_view.route('/signout/', methods=['GET'])
 @admin_manager.admin.login_required
 def signout():
-	log_to_splunk({'action': 'admin_signout', 'admin_id': admin_manager.admin.uid(), 'ip': request.remote_addr})
+	log_to_splunk(
+		message="Admin signed out",
+		status_code=200,
+		ip_address=request.remote_addr,
+		method=request.method,
+		endpoint=request.path,
+		user_agent=request.headers.get("User-Agent"),
+		extra_data={
+			'action': 'admin_signout',
+			'admin_id': admin_manager.admin.uid()
+		}
+	)
 	admin_manager.signout()
 	return redirect("/admin/", code=302)
 
@@ -65,7 +94,19 @@ def users_view():
 	admin = admin_manager.get(id)
 	myusers = admin_manager.getUsersList()
 
-	log_to_splunk({'action': 'admin_view_users', 'admin_id': id, 'ip': request.remote_addr})
+	log_to_splunk(
+		message="Admin viewed users",
+		status_code=200,
+		ip_address=request.remote_addr,
+		method=request.method,
+		endpoint=request.path,
+		user_agent=request.headers.get("User-Agent"),
+		extra_data={
+			'action': 'admin_view_users',
+			'admin_id': id,
+			'user_count': len(myusers)
+		}
+	)
 	return render_template('users.html', g=g, admin=admin, users=myusers)
 
 @admin_view.route('/books/', methods=['GET'])
@@ -76,7 +117,20 @@ def books():
 	admin = admin_manager.get(id)
 	mybooks = book_manager.list(availability=0)
 
-	log_to_splunk({'action': 'admin_view_books', 'admin_id': id, 'ip': request.remote_addr})
+	log_to_splunk(
+		message="Admin viewed books",
+		status_code=200,
+		ip_address=request.remote_addr,
+		method=request.method,
+		endpoint=request.path,
+		user_agent=request.headers.get("User-Agent"),
+		extra_data={
+			'action': 'admin_view_books',
+			'admin_id': id,
+			'book_count': len(mybooks)
+		}
+	)
+
 	return render_template('books/views.html', g=g, books=mybooks, admin=admin)
 
 @admin_view.route('/books/<int:id>')
@@ -84,13 +138,26 @@ def books():
 def view_book(id):
 	admin_manager.admin.set_session(session, g)
 
-	if id != None:
+	if id is not None:
 		b = book_manager.getBook(id)
 		users = user_manager.getUsersByBook(id)
 
-		log_to_splunk({'action': 'admin_view_book', 'book_id': id, 'admin_id': admin_manager.admin.uid(), 'ip': request.remote_addr})
+		log_to_splunk(
+			message="Admin viewed specific book",
+			status_code=200 if b else 404,
+			ip_address=request.remote_addr,
+			method=request.method,
+			endpoint=request.path,
+			user_agent=request.headers.get("User-Agent"),
+			extra_data={
+				'action': 'admin_view_book',
+				'book_id': id,
+				'admin_id': admin_manager.admin.uid(),
+				'user_count': len(users) if users else 0
+			}
+		)
 
-		if b and len(b) <1:
+		if b and len(b) < 1:
 			return render_template('books/book_view.html', error="No book found!")
 
 		return render_template("books/book_view.html", books=b, books_owners=users, g=g)
@@ -99,7 +166,18 @@ def view_book(id):
 @admin_manager.admin.login_required
 def book_add():
 	admin_manager.admin.set_session(session, g)
-	log_to_splunk({'action': 'admin_add_book_view', 'admin_id': admin_manager.admin.uid(), 'ip': request.remote_addr})
+	log_to_splunk(
+		message="Admin opened add book page",
+		status_code=200,
+		ip_address=request.remote_addr,
+		method=request.method,
+		endpoint=request.path,
+		user_agent=request.headers.get("User-Agent"),
+		extra_data={
+			'action': 'admin_add_book_view',
+			'admin_id': admin_manager.admin.uid()
+		}
+	)
 	return render_template('books/add.html', g=g)
 
 @admin_view.route('/books/edit/<int:id>', methods=['GET', 'POST'])
@@ -107,11 +185,24 @@ def book_add():
 def book_edit(id):
 	admin_manager.admin.set_session(session, g)
 
-	if id != None:
+	if id is not None:
 		b = book_manager.getBook(id)
-		log_to_splunk({'action': 'admin_edit_book_view', 'book_id': id, 'admin_id': admin_manager.admin.uid(), 'ip': request.remote_addr})
 
-		if b and len(b) <1:
+		log_to_splunk(
+			message="Admin opened edit book page",
+			status_code=200 if b else 404,
+			ip_address=request.remote_addr,
+			method=request.method,
+			endpoint=request.path,
+			user_agent=request.headers.get("User-Agent"),
+			extra_data={
+				'action': 'admin_edit_book_view',
+				'book_id': id,
+				'admin_id': admin_manager.admin.uid()
+			}
+		)
+
+		if b and len(b) < 1:
 			return render_template('edit.html', error="No book found!")
 
 		return render_template("books/edit.html", book=b, g=g)
@@ -125,7 +216,19 @@ def book_delete(id):
 
 	if id is not None:
 		book_manager.delete(id)
-		log_to_splunk({'action': 'admin_delete_book', 'book_id': id, 'admin_id': admin_manager.admin.uid(), 'ip': request.remote_addr})
+		log_to_splunk(
+			message="Admin deleted a book",
+			status_code=200,
+			ip_address=request.remote_addr,
+			method=request.method,
+			endpoint=request.path,
+			user_agent=request.headers.get("User-Agent"),
+			extra_data={
+				'action': 'admin_delete_book',
+				'book_id': id,
+				'admin_id': admin_manager.admin.uid()
+			}
+		)
 
 	return redirect('/admin/books/')
 
@@ -138,7 +241,7 @@ def search():
 
 	keyword = request.args["keyword"]
 
-	if len(keyword)<1:
+	if len(keyword) < 1:
 		return redirect('/admin/books')
 
 	id = int(admin_manager.admin.uid())
@@ -146,7 +249,20 @@ def search():
 
 	d = book_manager.search(keyword, 0)
 
-	log_to_splunk({'action': 'admin_search_books', 'keyword': keyword, 'admin_id': id, 'result_count': len(d), 'ip': request.remote_addr})
+	log_to_splunk(
+		message="Admin searched books",
+		status_code=200,
+		ip_address=request.remote_addr,
+		method=request.method,
+		endpoint=request.path,
+		user_agent=request.headers.get("User-Agent"),
+		extra_data={
+			'action': 'admin_search_books',
+			'keyword': keyword,
+			'admin_id': id,
+			'result_count': len(d)
+		}
+	)
 
 	if len(d) > 0:
 		return render_template("books/views.html", search=True, books=d, count=len(d), keyword=escape(keyword), g=g, admin=admin)

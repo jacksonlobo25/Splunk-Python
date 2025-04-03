@@ -15,38 +15,56 @@ user_manager = UserManager(DAO)
 def home(id):
 	user_manager.user.set_session(session, g)
 
+	user_id = user_manager.user.uid() if user_manager.user.isLoggedIn() else None
+
 	if id is not None:
 		b = book_manager.getBook(id)
-		log_to_splunk({
-			'action': 'view_book_detail',
-			'book_id': id,
-			'user_id': user_manager.user.uid() if user_manager.user.isLoggedIn() else None,
-			'ip': request.remote_addr
-		})
+
+		log_to_splunk(
+			message="Viewed book detail",
+			status_code=200 if b else 404,
+			ip_address=request.remote_addr,
+			method=request.method,
+			endpoint=request.path,
+			user_agent=request.headers.get("User-Agent"),
+			extra_data={
+				'action': 'view_book_detail',
+				'book_id': id,
+				'user_id': user_id
+			}
+		)
 
 		user_books = {}
 		if user_manager.user.isLoggedIn():
-			user_books = book_manager.getReserverdBooksByUser(user_id=user_manager.user.uid())['user_books'].split(',')
-		
+			user_books = book_manager.getReserverdBooksByUser(user_id=user_id)['user_books'].split(',')
+
 		if b and len(b) < 1:
 			return render_template('book_view.html', error="No book found!")
 
 		return render_template("book_view.html", books=b, g=g, user_books=user_books)
+
 	else:
 		b = book_manager.list()
 		user_books = []
 
 		if user_manager.user.isLoggedIn():
-			reserved_books = book_manager.getReserverdBooksByUser(user_id=user_manager.user.uid())
+			reserved_books = book_manager.getReserverdBooksByUser(user_id=user_id)
 			if reserved_books is not None:
 				user_books = reserved_books['user_books'].split(',')
 
-		log_to_splunk({
-			'action': 'view_books_list',
-			'user_id': user_manager.user.uid() if user_manager.user.isLoggedIn() else None,
-			'book_count': len(b),
-			'ip': request.remote_addr
-		})
+		log_to_splunk(
+			message="Viewed books list",
+			status_code=200,
+			ip_address=request.remote_addr,
+			method=request.method,
+			endpoint=request.path,
+			user_agent=request.headers.get("User-Agent"),
+			extra_data={
+				'action': 'view_books_list',
+				'user_id': user_id,
+				'book_count': len(b)
+			}
+		)
 
 		if b and len(b) < 1:
 			return render_template('books.html', error="No books found!")
@@ -59,16 +77,23 @@ def add(id):
 	user_id = user_manager.user.uid()
 	book_manager.reserve(user_id, id)
 
-	log_to_splunk({
-		'action': 'reserve_book',
-		'user_id': user_id,
-		'book_id': id,
-		'ip': request.remote_addr
-	})
+	log_to_splunk(
+		message="Reserved a book",
+		status_code=200,
+		ip_address=request.remote_addr,
+		method=request.method,
+		endpoint=request.path,
+		user_agent=request.headers.get("User-Agent"),
+		extra_data={
+			'action': 'reserve_book',
+			'user_id': user_id,
+			'book_id': id
+		}
+	)
 
 	b = book_manager.list()
 	user_manager.user.set_session(session, g)
-	
+
 	return render_template("books.html", msg="Book reserved", books=b, g=g)
 
 @book_view.route('/books/search', methods=['GET'])
@@ -85,13 +110,20 @@ def search():
 
 	d = book_manager.search(keyword)
 
-	log_to_splunk({
-		'action': 'search_books',
-		'keyword': keyword,
-		'result_count': len(d),
-		'user_id': user_manager.user.uid() if user_manager.user.isLoggedIn() else None,
-		'ip': request.remote_addr
-	})
+	log_to_splunk(
+		message="Searched books",
+		status_code=200,
+		ip_address=request.remote_addr,
+		method=request.method,
+		endpoint=request.path,
+		user_agent=request.headers.get("User-Agent"),
+		extra_data={
+			'action': 'search_books',
+			'keyword': keyword,
+			'result_count': len(d),
+			'user_id': user_manager.user.uid() if user_manager.user.isLoggedIn() else None
+		}
+	)
 
 	if len(d) > 0:
 		return render_template("books.html", search=True, books=d, count=len(d), keyword=escape(keyword), g=g)
