@@ -13,8 +13,8 @@ ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '';
 FLUSH PRIVILEGES;
 EXIT;
 
-CREATE DATABASE lms
-USE lms
+CREATE DATABASE lms;
+USE lms;
 
 -----------------
 minikube start --driver=docker
