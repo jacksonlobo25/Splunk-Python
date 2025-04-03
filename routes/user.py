@@ -5,6 +5,8 @@ from Common.splunk_logger import log_to_splunk
 
 from Controllers.UserManager import UserManager
 
+import traceback
+
 user_view = Blueprint('user_routes', __name__, template_folder='/templates')
 
 user_manager = UserManager(DAO)
@@ -172,3 +174,41 @@ def update():
 
 	flash('Your info has been updated!')
 	return redirect("/user/")
+
+@user_view.app_errorhandler(Exception)
+def handle_exception(e):
+    tb = traceback.format_exc()
+
+    log_to_splunk(
+        message="Unhandled exception occurred",
+        status_code=500,
+        ip_address=request.remote_addr,
+        method=request.method,
+        endpoint=request.path,
+        user_agent=request.headers.get("User-Agent"),
+        extra_data={
+            'action': 'unhandled_exception',
+            'error': str(e),
+            'traceback': tb,
+            'user_id': session.get('user')
+        }
+    )
+    return render_template("errors/500.html"), 500
+
+
+# Optional: Error handler for 404 Not Found
+@user_view.app_errorhandler(404)
+def not_found_error(e):
+    log_to_splunk(
+        message="Page not found",
+        status_code=404,
+        ip_address=request.remote_addr,
+        method=request.method,
+        endpoint=request.path,
+        user_agent=request.headers.get("User-Agent"),
+        extra_data={
+            'action': 'not_found',
+            'user_id': session.get('user')
+        }
+    )
+    return render_template("errors/404.html"), 404
