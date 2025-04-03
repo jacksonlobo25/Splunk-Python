@@ -44,7 +44,7 @@ def signin():
 		if len(email) < 1 or len(password) < 1:
 			return render_template('admin/signin.html', error="Email and password are required")
 
-		d = admin_manager.signin(email, hash(password))
+		d = admin_manager.signin(email, password)
 
 		log_to_splunk(
 			message="Admin sign-in attempt",

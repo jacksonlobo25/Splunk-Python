@@ -40,7 +40,7 @@ def signin():
 		if len(email) < 1 or len(password) < 1:
 			return render_template('signin.html', error="Email and password are required")
 
-		d = user_manager.signin(email, hash(password))
+		d = user_manager.signin(email, password)
 
 		log_to_splunk(
 			message="User sign-in attempt",
@@ -75,7 +75,7 @@ def signup():
 		if len(name) < 1 or len(email) < 1 or len(password) < 1:
 			return render_template('signup.html', error="All fields are required")
 
-		new_user = user_manager.signup(name, email, hash(password))
+		new_user = user_manager.signup(name, email, password)
 
 		log_to_splunk(
 			message="User signup attempt",
@@ -155,7 +155,7 @@ def update():
 	password = str(_form["password"])
 	bio = str(_form["bio"])
 
-	user_manager.update(name, email, hash(password), bio, user_manager.user.uid())
+	user_manager.update(name, email, password, bio, user_manager.user.uid())
 
 	log_to_splunk(
 		message="User updated profile",
