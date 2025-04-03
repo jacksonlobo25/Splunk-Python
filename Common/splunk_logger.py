@@ -10,6 +10,8 @@ SPLUNK_TOKEN = '16e22809-f1a7-4972-b91d-b724a7cfb02b'
 
 # Setup stdout logger (Dynatrace reads this)
 stdout_logger = logging.getLogger("stdout_logger")
+stdout_logger.propagate = False
+
 if not stdout_logger.handlers:
     handler = logging.StreamHandler()
     formatter = logging.Formatter('[%(asctime)s] %(levelname)s: %(message)s')
@@ -35,19 +37,21 @@ def log_to_splunk(event, sourcetype='web-app', index='main', host='flask-app'):
         response = requests.post(
             SPLUNK_HEC_URL,
             headers=headers,
-            data=json.dumps(payload),  # only payload should be dumped
+            data=json.dumps(payload),
             verify=False
         )
 
         if response.status_code != 200:
-            stdout_logger.error(f"Splunk log failed: {response.status_code} {response.text}")
+            stdout_logger.error(f"[Splunk Error] HTTP {response.status_code}: {response.text}")
 
-        # Only stringify if needed
+        # Only log to stdout for human-readability (not structured JSON)
         if isinstance(event, dict):
             stdout_logger.info(json.dumps(event))
         else:
             stdout_logger.info(event)
 
     except Exception as e:
-        stdout_logger.error(f"Splunk logging error: {e}")
+        # Avoid logging this error via Splunk again!
+        print(f"[Splunk Logging Error] {e}")
+
 
