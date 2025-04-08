@@ -16,12 +16,13 @@ EXIT;
 CREATE DATABASE lms;
 USE lms;
 
------------------
-minikube start --driver=docker
 -------------------
 
 docker build -t splunk-python-app:latest .
 docker run -p 5000:5000 splunk-python-app:latest
+
+docker tag splunk-python-app:latest jacksonlobo/splunk-python-app:latest
+docker push jacksonlobo/splunk-python-app:latest
 
 ------------------
 
@@ -30,7 +31,7 @@ kubectl apply -f flask.yaml
 
 kubectl port-forward service/splunk-python-app-service 8080:80
 
-
+-----------------------
 
 INSERT INTO `users` (`id`, `name`, `email`, `password`, `bio`, `mob`, `lock`, `created_at`) VALUES
 (7, 'Jack', 'jack@gmail.com', 'jack', 'Hi :)! Long time no see ❤️', '', 0, '2025-03-04 23:07:53');
@@ -40,5 +41,5 @@ INSERT INTO `users` (`id`, `name`, `email`, `password`, `bio`, `mob`, `lock`, `c
 (8, 'ABC', 'abc@gmail.com', 'abc', 'Hello :)! Long time no see ❤️', '', 0, '2025-03-03 23:07:53');
 
 INSERT INTO `admin` (`id`, `email`, `password`) VALUES
-(2, 'admin@gmail.com', '2');
+(2, 'admin@gmail.com', 'admin');
 
